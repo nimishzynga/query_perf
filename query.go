@@ -9,7 +9,8 @@ import (
 	"code.google.com/p/plotinum/plot"
 	"code.google.com/p/plotinum/plotter"
 	"code.google.com/p/plotinum/plotutil"
-    "strconv"
+	"io/ioutil"
+	"strconv"
 )
 
 const (
@@ -31,13 +32,15 @@ func sendRequest(numReq int64, st *stats, ch chan bool) {
 	totReq := numReq
 	for numReq > 0 {
 		start := time.Now()
-	    resp, err := http.Get(queryuri)
+		resp, err := http.Get(queryuri)
 		end := int64(time.Since(start))
 		resTime = append(resTime, end)
 		if err != nil {
-            fmt.Println("Error is err", err, "response is ", resp)
+			fmt.Println("Error is err", err, "response is ", resp)
 			st.failures++
 		}
+		ioutil.ReadAll(resp.Body)
+		resp.Body.Close()
 		numReq--
 	}
 	var tot, max, min int64
@@ -84,7 +87,7 @@ func mainLoop(maxworker int, queryNum int) float64 {
 	//   fmt.Println("Avg Time (mili second)", AvgTime)
 	//    fmt.Println("Max Time (mili second)", float64(st.maxTime)/float64(time.Millisecond))
 	//    fmt.Println("Min Time (mili second)", st.minTime)
-	fmt.Println("worker ",maxworker," query", queryNum, "QPS",qps, "error", st.failures)
+	fmt.Println("worker ", maxworker, " query", queryNum, "QPS", qps, "error", st.failures)
 	return qps
 }
 
